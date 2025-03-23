@@ -116,22 +116,94 @@ def select_7(group_name, subject_name):
     print(f"AVG grades for students in group {group_name} for subject {subject_name}:")
     if students:
         for student in students:
-            print(f"{student.first_name} {student.last_name}: {student.avg_grade}")
+            print(
+                f"Id {student.id}: {student.first_name} {student.last_name}: {student.avg_grade}"
+            )
 
     else:
         return
 
 
-def select_8():
-    pass
+def select_8(teacher_id):
+    avg_grade = (
+        session.query(
+            Subject.name.label("subject_name"),
+            Teacher.first_name.label("first_name"),
+            Teacher.last_name.label("last_name"),
+            func.round(func.avg(Grade.grade), 2).label("avg_grade"),
+        )
+        .join(Grade, Grade.subject_id == Subject.id)
+        .join(Teacher, Teacher.id == Subject.teacher_id)
+        .filter(Teacher.id == teacher_id)
+        .group_by(Subject.name, Teacher.id)
+        .all()
+    )
+
+    if avg_grade:
+        teacher = avg_grade[0]
+        print(
+            f"AVG grade from teacher {teacher.first_name} {teacher.last_name} with ID {teacher_id} for subjects:"
+        )
+
+        for subject in avg_grade:
+            print(f"{subject.subject_name}: {subject.avg_grade}")
+    else:
+        print(
+            f"Teacher with ID {teacher_id} has no grades or does not teach any subjects."
+        )
 
 
-def select_9():
-    pass
+def select_9(student_id):
+    courses = (
+        session.query(Subject.name, Student.first_name, Student.last_name)
+        .join(Grade, Grade.subject_id == Subject.id)
+        .join(Student, Student.id == Grade.student_id)
+        .filter(Student.id == student_id)
+        .distinct()
+        .all()
+    )
+
+    student = courses[0]
+
+    if courses:
+        print(
+            f"Courses for student {student.first_name} {student.last_name} with ID {student_id}:"
+        )
+        for course in courses:
+            print(course.name)
+    else:
+        print(f"Student with ID {student_id} is not enrolled in any courses.")
 
 
-def select_10():
-    pass
+def select_10(student_id, teacher_id):
+    courses = (
+        session.query(
+            Subject.name,
+            Student.first_name,
+            Student.last_name,
+            Teacher.first_name.label("teacher_first_name"),
+            Teacher.last_name.label("teacher_last_name"),
+        )
+        .join(Grade, Grade.subject_id == Subject.id)
+        .join(Student, Student.id == Grade.student_id)
+        .join(Teacher, Teacher.id == Subject.teacher_id)
+        .filter(Student.id == student_id, Teacher.id == teacher_id)
+        .distinct()
+        .all()
+    )
+
+    if courses:
+        student_name = f"{courses[0].first_name} {courses[0].last_name}"
+        teacher_name = f"{courses[0].teacher_first_name} {courses[0].teacher_last_name}"
+        print(
+            f"Courses taught by teacher {teacher_name} with ID {teacher_id} to student {student_name} with ID {student_id} :"
+        )
+        for course in courses:
+            print(course.name)
+    else:
+        print(
+            f"No courses found for student with ID {student_id} and teacher with ID {teacher_id}."
+        )
 
 
 def getRandomSubject():
@@ -161,6 +233,15 @@ def getRandomGroupName():
         return
 
 
+def getRandomStudent():
+    student = session.query(Student.id).distinct().all()
+    if student:
+        random_student = random.choice(student)[0]
+        return random_student
+    else:
+        return
+
+
 if __name__ == "__main__":
     with engine.connect() as connection:
         print(f"-------------------------------------------------------")
@@ -185,9 +266,9 @@ if __name__ == "__main__":
         print(f"-------------------------------------------------------")
         print("")
 
-        teacher_name = getRandomTeacher()
-        if teacher_name:
-            select_5(teacher_name)
+        teacher_id = getRandomTeacher()
+        if teacher_id:
+            select_5(teacher_id)
         print(f"-------------------------------------------------------")
         print("")
 
@@ -199,13 +280,21 @@ if __name__ == "__main__":
 
         if group_name and subject_name:
             select_7(group_name, subject_name)
+        print(f"-------------------------------------------------------")
+        print("")
 
-        # if teacher_name:
-        #     select_8(teacher_name)
+        if teacher_id:
+            select_8(teacher_id)
+        print(f"-------------------------------------------------------")
+        print("")
 
-        # student_name = getRandomStudent()
-        # if student_name:
-        #     select_9(student_name)
+        student_id = getRandomStudent()
+        if student_id:
+            select_9(student_id)
+        print(f"-------------------------------------------------------")
+        print("")
 
-        # if student_name and teacher_name:
-        #     select_10(student_name, teacher_name)
+        if student_id and teacher_id:
+            select_10(student_id, teacher_id)
+        print(f"-------------------------------------------------------")
+        print("")
