@@ -10,6 +10,14 @@ fake = Faker()
 Base.metadata.create_all(engine)
 
 
+session.query(Student).delete()
+session.query(Teacher).delete()
+session.query(Grade).delete()
+session.query(Subject).delete()
+session.query(Group).delete()
+session.commit()
+
+
 teachers = []
 for _ in range(5):
     teacher = Teacher(first_name=fake.first_name(), last_name=fake.last_name())
@@ -42,9 +50,14 @@ for _ in range(45):
         last_name=fake.last_name(),
         group_id=random.choice(groups).id,
     )
-    student.subjects.extend(random.sample(subjects, k=4))
     students.append(student)
 session.add_all(students)
+session.commit()
+
+
+for student in students:
+    student.subjects.extend(random.sample(subjects, k=4))
+
 session.commit()
 
 
@@ -69,3 +82,10 @@ session.add_all(grades)
 session.commit()
 
 session.close()
+
+
+print(f"Teachers: {session.query(Teacher).count()}")
+print(f"Groups: {session.query(Group).count()}")
+print(f"Subjects: {session.query(Subject).count()}")
+print(f"Students: {session.query(Student).count()}")
+print(f"Grades: {session.query(Grade).count()}")
