@@ -30,7 +30,7 @@ subjects = [
     Subject(name="Literature", teacher_id=random.choice(teachers).id),
     Subject(name="Mathematics", teacher_id=random.choice(teachers).id),
     Subject(name="English", teacher_id=random.choice(teachers).id),
-    Subject(name="Germany", teacher_id=random.choice(teachers).id),
+    Subject(name="German", teacher_id=random.choice(teachers).id),
     Subject(name="History", teacher_id=random.choice(teachers).id),
     Subject(name="Biology", teacher_id=random.choice(teachers).id),
 ]
